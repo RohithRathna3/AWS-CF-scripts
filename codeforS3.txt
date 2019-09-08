@@ -1,1 +1,0 @@
-https://aws.amazon.com/premiumsupport/knowledge-center/emr-submit-spark-job-remote-cluster/
