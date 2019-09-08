@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  ENV:
+    Type: String
+    Default: <ENV>
+  FunctionName:
+    Type: String
+    Default: <FunctionName>
+  TopicName:
+    Type: String
+    Default: <TopicName>
+  TrEnvironmentType: &TrEnvironmentType
+    Description: tr:environment-type tag of instance and of this cf stack
+    Type: String
+    Default: <TrEnvironmentType>
+  TrApplicationAssetInsightId:
+    Description: tr:application-asset-insight-id tag of instance and of this cf stack
+    Type: String
+    Default: <TrApplicationAssetInsightId>
+  TrResourceOwner:
+    Description: tr:resource-owner tag of instance and of this cf stack
+    Type: String
+    Default: <TrResourceOwner>
+  TrProjectName:
+    Description: tr:project-name tag of instance and of this cf stack
+    Type: String
+    Default: <TrProjectName>
+  TrProjectEnv:
+    Description: tr:projectenv tag of instance and of this cf stack
+    Type: String
+    Default: <TrProjectEnv>
+Resources:
+  MySNSTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      Subscription:
+        - Endpoint: !Sub >-
+            arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:FunctionName/${FunctionName}
+          Protocol: lambda
+      TopicName: !Ref TopicName
+      Tags:
+      - Key: Name
+        Value:
+          Ref: Name
+      - Key: tr-environment-type
+        Value:
+          Ref: TrEnvironmentType
+      - Key: tr:application-asset-insight-id
+        Value:
+          Ref: TrApplicationAssetInsightId
+      - Key: tr:resource-owner
+        Value:
+          Ref: TrResourceOwner
+      - Key: tr:project-name
+        Value:
+          Ref: TrProjectName
+      - Key: tr:projectenv
+        Value:
+          Ref: TrProjectEnv
+  SNSTopicPolicy:
+    Type: 'AWS::SNS::TopicPolicy'
+    Properties:
+      PolicyDocument:
+        Version: 2008-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: 'sns:Publish'
+            Resource: '*'
+      Topics:
+        - !Ref MySNSTopic
+  a205593Eventsubscription:
+    Type: 'AWS::RDS::EventSubscription'
+    Properties:
+      EventCategories:
+        - notification
+      SnsTopicArn: !Ref MySNSTopic
+      SourceIds:
+        - db-instance-1
+        - !Ref myDBInstance
+      SourceType: db-cluster
+      Enabled: true
+      Tags:
+      - Key: Name
+        Value:
+          Ref: Name
+      - Key: tr-environment-type
+        Value:
+          Ref: TrEnvironmentType
+      - Key: tr:application-asset-insight-id
+        Value:
+          Ref: TrApplicationAssetInsightId
+      - Key: tr:resource-owner
+        Value:
+          Ref: TrResourceOwner
+      - Key: tr:project-name
+        Value:
+          Ref: TrProjectName
+      - Key: tr:projectenv
+        Value:
+          Ref: TrProjectEnv
